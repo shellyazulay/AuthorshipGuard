@@ -13,6 +13,13 @@ COLORS = ["#0072B2", "#009E73", "#D55E00", "#CC79A7", "#F0E442",
 
 
 def get_roc_metrics(real_preds, sample_preds):
+    if len(real_preds) == 0 or len(sample_preds) == 0:
+        print("Error: One of the prediction lists is empty.")
+        return None, None, None  
+
+    y_true = [0] * len(real_preds) + [1] * len(sample_preds)
+    y_scores = real_preds + sample_preds
+    
     fpr, tpr, _ = roc_curve([0] * len(real_preds) + [1] * len(sample_preds), real_preds + sample_preds)
     roc_auc = auc(fpr, tpr)
     return fpr.tolist(), tpr.tolist(), float(roc_auc)
