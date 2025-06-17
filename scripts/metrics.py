@@ -26,6 +26,9 @@ def get_roc_metrics(real_preds, sample_preds):
 
 
 def get_precision_recall_metrics(real_preds, sample_preds):
+    if not real_preds and not sample_preds:
+        return [], [], 0.0
+    
     precision, recall, _ = precision_recall_curve([0] * len(real_preds) + [1] * len(sample_preds),
                                                   real_preds + sample_preds)
     pr_auc = auc(recall, precision)
