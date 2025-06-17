@@ -132,7 +132,11 @@ def experiment(args):
     print(f"Real mean/std: {np.mean(predictions['real']):.2f}/{np.std(predictions['real']):.2f}, Samples mean/std: {np.mean(predictions['samples']):.2f}/{np.std(predictions['samples']):.2f}")
     fpr, tpr, roc_auc = get_roc_metrics(predictions['real'], predictions['samples'])
     p, r, pr_auc = get_precision_recall_metrics(predictions['real'], predictions['samples'])
-    print(f"Criterion {name}_threshold ROC AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")
+    if roc_auc is None or pr_auc is None:
+        print(f"Criterion {name}_threshold could not be evaluated (empty predictions).")
+    else:
+        print(f"Criterion {name}_threshold ROC AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")
+
     # results
     results_file = f'{args.output_file}.{name}.json'
     results = { 'name': f'{name}_threshold',
