@@ -109,7 +109,11 @@ def experiment(args):
                        'samples': [x["sampled_crit"] for x in eval_results]}
         fpr, tpr, roc_auc = get_roc_metrics(predictions['real'], predictions['samples'])
         p, r, pr_auc = get_precision_recall_metrics(predictions['real'], predictions['samples'])
-        print(f"Criterion {name}_threshold ROC AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")
+        if roc_auc is None or pr_auc is None:
+            print(f"Criterion {name}_threshold could not be evaluated (empty predictions).")
+        else:
+            print(f"Criterion {name}_threshold ROC AUC: {roc_auc:.4f}, PR AUC: {pr_auc:.4f}")
+
         # log results
         results_file = f'{args.output_file}.{name}.json'
         results = { 'name': f'{name}_threshold',
