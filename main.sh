@@ -22,7 +22,7 @@ source_models="gpt-neo-2.7B"
 for D in $datasets; do
   for M in $source_models; do
     echo `date`, Preparing dataset ${D}_${M} ...
-    python scripts/data_builder.py --dataset $D --n_samples 500 --base_model_name $M --output_file $data_path/${D}_${M}
+    python scripts/data_builder.py --dataset $D --n_samples 100 --base_model_name $M --output_file $data_path/${D}_${M}
   done
 done
 
