@@ -21,7 +21,7 @@ source_models="bloom-7b1 opt-13b llama-13b llama2-13b"
 for D in $datasets; do
   for M in $source_models; do
     echo `date`, Preparing dataset ${D}_${M} ...
-    python scripts/data_builder.py --dataset $D --n_samples 500 --base_model_name $M --output_file $data_path/${D}_${M}
+    python scripts/data_builder.py --dataset $D --n_samples 100 --base_model_name $M --output_file $data_path/${D}_${M}
   done
 done
 exit
