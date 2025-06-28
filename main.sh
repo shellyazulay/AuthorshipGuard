@@ -14,7 +14,8 @@ data_path=$exp_path/data
 res_path=$exp_path/results
 mkdir -p $exp_path $data_path $res_path
 
-datasets="xsum squad writing"
+datasets="xsum squad"
+# datasets="xsum squad writing"
 source_models="gpt-neo-2.7B"
 # source_models="gpt2-xl opt-2.7b gpt-neo-2.7B gpt-j-6B gpt-neox-20b"
 
@@ -55,12 +56,12 @@ done
 for D in $datasets; do
   for M in $source_models; do
     echo `date`, Evaluating DetectGPT on ${D}_${M} ...
-    python scripts/detect_gpt.py --scoring_model_name $M --mask_filling_model_name t5-3b --n_perturbations 100 --dataset $D \
+    python scripts/detect_gpt.py --scoring_model_name $M --mask_filling_model_name t5-base --n_perturbations 100 --dataset $D \
                           --dataset_file $data_path/${D}_${M} --output_file $res_path/${D}_${M}
      # we leverage DetectGPT to generate the perturbations
     echo `date`, Evaluating DetectLLM methods on ${D}_${M} ...
     python scripts/detect_llm.py --scoring_model_name $M --dataset $D \
-                          --dataset_file $data_path/${D}_${M}.t5-3b.perturbation_100 --output_file $res_path/${D}_${M}
+                          --dataset_file $data_path/${D}_${M}.t5-base.perturbation_100 --output_file $res_path/${D}_${M}
   done
 done
 
