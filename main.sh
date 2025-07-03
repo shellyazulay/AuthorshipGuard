@@ -73,7 +73,7 @@ scoring_models="gpt-neo-2.7B"
 # evaluate Fast-DetectGPT
 for D in $datasets; do
   for M in $source_models; do
-    M1=gpt-j-6B  # sampling model
+    M1=gpt2-xl  # sampling model
     for M2 in $scoring_models; do
       echo `date`, Evaluating Fast-DetectGPT on ${D}_${M}.${M1}_${M2} ...
       python scripts/fast_detect_gpt.py --sampling_model_name ${M1} --scoring_model_name ${M2} --dataset $D \
@@ -85,7 +85,7 @@ done
 # evaluate DetectGPT and its improvement DetectLLM
 for D in $datasets; do
   for M in $source_models; do
-    M1=t5-3b  # perturbation model
+    M1=t5-base  # perturbation model
     for M2 in $scoring_models; do
       echo `date`, Evaluating DetectGPT on ${D}_${M}.${M1}_${M2} ...
       python scripts/detect_gpt.py --mask_filling_model_name ${M1} --scoring_model_name ${M2} --n_perturbations 100 --dataset $D \
