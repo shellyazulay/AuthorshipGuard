@@ -1,47 +1,77 @@
 import json
-import joblib
 import os
-from sklearn.pipeline import make_pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+import numpy as np
+from datasets import Dataset
 from sklearn.metrics import classification_report
+from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
+                          Trainer, TrainingArguments, pipeline)
 
-# Path to the dataset file
+# === Load and preprocess the dataset ===
 dataset_path = "exp_main/data/author_style_dataset.json"
-output_model_path = "exp_main/models/author_classifier.joblib"
-
-# Load the dataset from JSON file
 with open(dataset_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
-# Extract texts and their corresponding author labels
 texts = [entry["text"] for entry in data]
 labels = [entry["author"] for entry in data]
 
-# Split data into training and test sets (80% train, 20% test)
-X_train, X_test, y_train, y_test = train_test_split(
-    texts, labels, test_size=0.2, random_state=42
+# Create label mapping
+unique_labels = list(sorted(set(labels)))
+label2id = {label: i for i, label in enumerate(unique_labels)}
+id2label = {i: label for label, i in label2id.items()}
+numeric_labels = [label2id[label] for label in labels]
+
+# Convert to HuggingFace Dataset
+raw_dataset = Dataset.from_dict({
+    "text": texts,
+    "label": numeric_labels
+})
+raw_dataset = raw_dataset.train_test_split(test_size=0.2)
+
+# === Tokenization ===
+model_checkpoint = "roberta-base"
+tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+
+def tokenize_function(example):
+    return tokenizer(example["text"], padding="max_length", truncation=True, max_length=512)
+
+tokenized_datasets = raw_dataset.map(tokenize_function, batched=True)
+
+# === Model ===
+model = AutoModelForSequenceClassification.from_pretrained(
+    model_checkpoint,
+    num_labels=len(unique_labels),
+    id2label=id2label,
+    label2id=label2id
 )
 
-# Build a pipeline with TF-IDF vectorizer and logistic regression classifier
-model = make_pipeline(
-    TfidfVectorizer(ngram_range=(1, 2), max_features=10000),
-    LogisticRegression(max_iter=1000)
+# === Training Arguments ===
+training_args = TrainingArguments(
+    output_dir="./bert_output",
+    evaluation_strategy="epoch",
+    save_strategy="no",
+    learning_rate=2e-5,
+    per_device_train_batch_size=8,
+    per_device_eval_batch_size=8,
+    num_train_epochs=10,
+    weight_decay=0.01,
+    logging_dir='./logs',
+    logging_steps=10
 )
 
-# Train the model using the training data
-print("Training the model...")
-model.fit(X_train, y_train)
+# === Trainer ===
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["test"],
+    tokenizer=tokenizer
+)
 
-# Evaluate the model on the test set and display results
-y_pred = model.predict(X_test)
-print("\nTest set results:")
-print(classification_report(y_test, y_pred))
+# === Train the model ===
+trainer.train()
 
-# Ensure the output directory for models exists
-os.makedirs("exp_main/models", exist_ok=True)
-
-# Save the trained model to disk
-joblib.dump(model, output_model_path)
-print(f"\nModel saved to: {output_model_path}")
+# === Evaluate the model ===
+predictions = trainer.predict(tokenized_datasets["test"])
+preds = np.argmax(predictions.predictions, axis=1)
+true_labels = predictions.label_ids
+print(classification_report(true_labels, preds, target_names=unique_labels))
