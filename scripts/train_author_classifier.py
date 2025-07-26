@@ -7,7 +7,8 @@ from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
                           Trainer, TrainingArguments, pipeline)
 
 # === Load and preprocess the dataset ===
-dataset_path = "exp_main/data/author_style_dataset.json"
+# dataset_path = "exp_main/data/author_style_dataset.json"
+dataset_path = "C:/Users/shell/Downloads/AuthorshipGuard/AuthorshipGuard/exp_main/data/author_style_dataset.json"
 with open(dataset_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
