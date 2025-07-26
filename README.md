@@ -3,7 +3,7 @@
 This repository contains the code for a two-phase project:
 
 1.  In the **first phase**, we use Fast-DetectGPT to determine whether a given text was written by a **machine or a human**.
-2.  In the **second phase**, if the text is detected as machine-generated, we classify **which author's style** the machine tried to imitate.
+2.  In the **second phase**, After the text is detected as human or machine-generated, we classify **which author's style** the machine tried to imitate.
 
 The project builds upon the Fast-DetectGPT algorithm introduced in the ICLR 2024 paper ["Fast-DetectGPT: Efficient Zero-Shot Detection of Machine-Generated Text via Conditional Probability Curvature"](https://arxiv.org/pdf/2310.05130), and extends it by integrating style classification using GPT-2, RoBERTa, and TF-IDF + Logistic Regression models.
 
@@ -24,7 +24,7 @@ Our approach consists of two main components:
     * Fine-tuned RoBERTa-base 
     * BERT embeddings + linear classifier
 
-2.  **Attributing Style to Human Authors**: If a text is machine-generated, we classify which human author was imitated using stylistic and semantic features. Target authors include: Yuval Noah Harari, Carl Sagan, Malcolm Gladwell, Angela Davis, etc.
+2.  **Attributing Style to Human Authors**: After distinguishing who created the text, we classify which human author was imitated using stylistic and semantic features. Target authors include: Yuval Noah Harari, Carl Sagan, Malcolm Gladwell, Angela Davis, etc.
 
 ## 🛠 Environment
 
