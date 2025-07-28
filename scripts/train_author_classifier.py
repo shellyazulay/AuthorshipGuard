@@ -4,18 +4,21 @@ import numpy as np
 from datasets import Dataset
 from sklearn.metrics import classification_report
 from transformers import (AutoTokenizer, AutoModelForSequenceClassification,
-                          Trainer, TrainingArguments, pipeline)
+                         TrainingArguments)
+from datetime import datetime
+import joblib  # For saving the model
+from transformers import Trainer
 
-# === Load and preprocess the dataset ===
-# dataset_path = "exp_main/data/author_style_dataset.json"
-dataset_path = "C:/Users/shell/Downloads/AuthorshipGuard/AuthorshipGuard/exp_main/data/author_style_dataset.json"
+
+# Load and preprocess the dataset 
+dataset_path = "exp_main/data/author_style_dataset.json"
 with open(dataset_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 texts = [entry["text"] for entry in data]
 labels = [entry["author"] for entry in data]
 
-# Create label mapping
+# Create label mappings
 unique_labels = list(sorted(set(labels)))
 label2id = {label: i for i, label in enumerate(unique_labels)}
 id2label = {i: label for label, i in label2id.items()}
@@ -28,7 +31,7 @@ raw_dataset = Dataset.from_dict({
 })
 raw_dataset = raw_dataset.train_test_split(test_size=0.2)
 
-# === Tokenization ===
+# Tokenization 
 model_checkpoint = "roberta-base"
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 
@@ -37,7 +40,7 @@ def tokenize_function(example):
 
 tokenized_datasets = raw_dataset.map(tokenize_function, batched=True)
 
-# === Model ===
+# Load model 
 model = AutoModelForSequenceClassification.from_pretrained(
     model_checkpoint,
     num_labels=len(unique_labels),
@@ -45,7 +48,7 @@ model = AutoModelForSequenceClassification.from_pretrained(
     label2id=label2id
 )
 
-# === Training Arguments ===
+# Training arguments 
 training_args = TrainingArguments(
     output_dir="./bert_output",
     evaluation_strategy="epoch",
@@ -59,7 +62,7 @@ training_args = TrainingArguments(
     logging_steps=10
 )
 
-# === Trainer ===
+# Trainer setup 
 trainer = Trainer(
     model=model,
     args=training_args,
@@ -68,11 +71,28 @@ trainer = Trainer(
     tokenizer=tokenizer
 )
 
-# === Train the model ===
+# Train the model 
 trainer.train()
 
-# === Evaluate the model ===
+# Evaluate on test set 
 predictions = trainer.predict(tokenized_datasets["test"])
 preds = np.argmax(predictions.predictions, axis=1)
 true_labels = predictions.label_ids
-print(classification_report(true_labels, preds, target_names=unique_labels))
+
+# Generate classification report 
+report = classification_report(true_labels, preds, target_names=unique_labels)
+print(report)
+
+# Save classification report to file 
+os.makedirs("exp_main/results", exist_ok=True)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+report_path = f"exp_main/results/classification_report_{timestamp}.txt"
+with open(report_path, "w", encoding="utf-8") as f:
+    f.write(report)
+
+# Save the trained model (as joblib) 
+# Save the model and tokenizer in HuggingFace format for easy loading later
+model_save_path = "exp_main/models/author_classifier"
+os.makedirs(model_save_path, exist_ok=True)
+model.save_pretrained(model_save_path)     # Save the trained model weights and config
+tokenizer.save_pretrained(model_save_path) # Save the tokenizer files
