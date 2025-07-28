@@ -39,6 +39,10 @@ Our approach consists of two main components:
 ```
 pip install -r requirements.txt
 bash main.sh
+
+python scripts/train_author_classifier.py
+python scripts/predict_author_for_all_texts.py 
+
 ```
 ### Final training and useage
 
