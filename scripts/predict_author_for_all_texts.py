@@ -24,7 +24,7 @@ if len(texts) == 0:
     print("No texts found in the data file.")
     exit()
 
-print("Loaded {len(texts)} texts for prediction.")
+print(f"Loaded {len(texts)} texts for prediction.")
 
 # Tokenize the texts
 def tokenize_fn(example):
